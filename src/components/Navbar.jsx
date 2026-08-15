@@ -22,8 +22,8 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="text-lg font-extrabold tracking-tight text-brand uppercase">
-            GFG Club
+          <img src="/logo.png" alt="GFG Logo" className="h-8 w-auto object-contain" />
+          <span className="text-lg font-extrabold tracking-tight text-brand uppercase">X KDKCE
           </span>
         </Link>
 
@@ -31,14 +31,13 @@ export default function Navbar() {
         <nav className="hidden md:flex items-center gap-8">
           {NAV_LINKS.map((link) => {
             const isActive = location.pathname === link.path;
-            
+
             return (
               <Link
                 key={link.name}
                 to={link.path}
-                className={`text-[13px] font-medium uppercase tracking-widest transition-colors duration-200 ${
-                  isActive ? 'text-brand' : 'text-brand/60 hover:text-brand'
-                }`}
+                className={`text-[13px] font-medium uppercase tracking-widest transition-colors duration-200 ${isActive ? 'text-brand' : 'text-brand/60 hover:text-brand'
+                  }`}
               >
                 {link.name}
               </Link>

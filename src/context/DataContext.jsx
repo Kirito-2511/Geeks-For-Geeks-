@@ -66,7 +66,8 @@ const initialData = {
       branch: 'Computer Science',
       domain: 'Advisory',
       linkedin: '#',
-      github: '#'
+      github: '#',
+      instagram: '#'
     }
   ],
   team: [
@@ -81,7 +82,8 @@ const initialData = {
       branch: 'Computer Science',
       domain: 'Backend / Systems',
       linkedin: '#',
-      github: '#'
+      github: '#',
+      instagram: '#'
     },
     { 
       id: '2', 
@@ -94,7 +96,8 @@ const initialData = {
       branch: 'Information Technology',
       domain: 'Full Stack',
       linkedin: '',
-      github: ''
+      github: '',
+      instagram: ''
     },
     { 
       id: '3', 
@@ -107,7 +110,8 @@ const initialData = {
       branch: 'Data Science',
       domain: 'Machine Learning',
       linkedin: '',
-      github: ''
+      github: '',
+      instagram: ''
     },
     { 
       id: '4', 
@@ -120,7 +124,8 @@ const initialData = {
       branch: 'Computer Science',
       domain: 'Frontend',
       linkedin: '',
-      github: ''
+      github: '',
+      instagram: ''
     },
   ],
   gallery: [

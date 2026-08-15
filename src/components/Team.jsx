@@ -266,6 +266,11 @@ export default function Team() {
                     [GITHUB]
                   </a>
                 )}
+                {selectedMember.instagram && (
+                  <a href={selectedMember.instagram} target="_blank" rel="noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
+                    [INSTAGRAM]
+                  </a>
+                )}
                 {selectedMember.email && (
                   <a href={`mailto:${selectedMember.email}`} className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
                     [EMAIL]

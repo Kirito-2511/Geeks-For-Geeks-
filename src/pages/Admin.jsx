@@ -203,7 +203,7 @@ export default function Admin() {
     if (!items || items.length === 0) return <p className="text-brand/50 uppercase tracking-widest text-sm py-4">No items found.</p>;
     
     // For Team, only show essential keys in table so it doesn't overflow
-    const ignoreKeys = ['id', 'image', 'media', 'bg', 'span', 'description', 'linkedin', 'github', 'email'];
+    const ignoreKeys = ['id', 'image', 'media', 'bg', 'span', 'description', 'linkedin', 'github', 'instagram', 'email'];
     const keys = Object.keys(items[0]).filter(k => !ignoreKeys.includes(k));
 
     return (
@@ -240,8 +240,8 @@ export default function Admin() {
 
   const formFields = {
     events: ['date', 'title', 'type', 'status'],
-    team: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'description'], // Added new fields
-    faculty: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'description'],
+    team: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'], // Added new fields
+    faculty: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'],
     gallery: ['label'],
     stats: ['value', 'label'],
     focusAreas: ['label']
@@ -324,7 +324,7 @@ export default function Admin() {
                     );
                   }
                   
-                  const isUrl = field === 'linkedin' || field === 'github';
+                  const isUrl = field === 'linkedin' || field === 'github' || field === 'instagram';
                   const isEmail = field === 'email';
                   let type = 'text';
                   if (isUrl) type = 'url';
