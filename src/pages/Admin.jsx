@@ -46,7 +46,7 @@ function SortableRow({ item, keys, activeTab, onDelete, onEdit }) {
       </td>
       
       {/* File Thumbnail */}
-      {(activeTab === 'team' || activeTab === 'gallery') && (
+      {(activeTab === 'team' || activeTab === 'gallery' || activeTab === 'faculty') && (
         <td className="p-4 w-16">
           {(item.image || item.media) ? (
             <div className="w-10 h-10 bg-brand/10 rounded overflow-hidden flex items-center justify-center">
@@ -152,9 +152,9 @@ export default function Admin() {
     e.preventDefault();
     const itemData = { ...formData };
     
-    if (activeTab === 'team') {
+    if (activeTab === 'team' || activeTab === 'faculty') {
       if (formData.fileData) itemData.image = formData.fileData;
-      if (!itemData.level) itemData.level = 'MEMBERS'; // default
+      if (activeTab === 'team' && !itemData.level) itemData.level = 'MEMBERS'; // default
       delete itemData.fileData;
     } else if (activeTab === 'gallery') {
       if (formData.fileData) itemData.media = formData.fileData;
@@ -213,7 +213,7 @@ export default function Admin() {
             <thead>
               <tr className="border-b border-brand/20 text-[10px] font-bold uppercase tracking-widest text-brand/40">
                 <th className="p-4 w-10"></th>
-                {(activeTab === 'team' || activeTab === 'gallery') && <th className="p-4 w-16">FILE</th>}
+                {(activeTab === 'team' || activeTab === 'gallery' || activeTab === 'faculty') && <th className="p-4 w-16">FILE</th>}
                 {keys.map(key => <th key={key} className="p-4">{key}</th>)}
                 <th className="p-4 text-right">Actions</th>
               </tr>
@@ -241,6 +241,7 @@ export default function Admin() {
   const formFields = {
     events: ['date', 'title', 'type', 'status'],
     team: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'description'], // Added new fields
+    faculty: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'description'],
     gallery: ['label'],
     stats: ['value', 'label'],
     focusAreas: ['label']
@@ -250,7 +251,7 @@ export default function Admin() {
     <div className="min-h-[calc(100vh-72px)] bg-canvas flex flex-col md:flex-row">
       {/* Sidebar Nav */}
       <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-brand/10 p-6 flex flex-col gap-4">
-        {['content', 'stats', 'focusAreas', 'events', 'team', 'gallery'].map(tab => (
+        {['content', 'stats', 'focusAreas', 'events', 'faculty', 'team', 'gallery'].map(tab => (
           <button
             key={tab}
             onClick={() => {
@@ -361,11 +362,11 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* File Upload for Team and Gallery */}
-                {(activeTab === 'team' || activeTab === 'gallery') && (
+                {/* File Upload for Team, Faculty, and Gallery */}
+                {(activeTab === 'team' || activeTab === 'gallery' || activeTab === 'faculty') && (
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
-                      Upload File (PNG/JPG/MP4/WAV) {(!editingId && activeTab === 'team') ? "(Optional)" : (editingId && (formData.image || formData.media) ? "(Optional to replace)" : "")}
+                      Upload File (PNG/JPG/MP4/WAV) {(!editingId && (activeTab === 'team' || activeTab === 'faculty')) ? "(Optional)" : (editingId && (formData.image || formData.media) ? "(Optional to replace)" : "")}
                     </span>
                     <input 
                       type="file" 

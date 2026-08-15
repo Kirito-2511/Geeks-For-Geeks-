@@ -25,6 +25,9 @@ const initialData = {
     galleryLabel: 'Gallery',
     galleryHeadline: 'Moments\nthat matter',
     
+    facultyLabel: 'Faculty',
+    facultyHeadline: 'Our\nMentors',
+    
     teamLabel: 'Team',
     teamHeadline: 'The Core\nCrew',
     
@@ -51,6 +54,20 @@ const initialData = {
     { id: '1', date: 'AUG 28', title: 'Workshop: React Fundamentals', type: 'Workshop', status: 'Upcoming' },
     { id: '2', date: 'SEP 05', title: 'Hackathon — Code for Change', type: 'Competition', status: 'Registration Open' },
     { id: '3', date: 'SEP 12', title: 'Tech Talk: System Design at Scale', type: 'Talk', status: 'Upcoming' },
+  ],
+  faculty: [
+    { 
+      id: '1', 
+      name: 'Dr. Jane Doe', 
+      role: 'FACULTY ADVISOR', 
+      image: '', 
+      description: 'Guiding the team with academic and industry experience.',
+      email: 'jane.doe@example.com',
+      branch: 'Computer Science',
+      domain: 'Advisory',
+      linkedin: '#',
+      github: '#'
+    }
   ],
   team: [
     { 
@@ -120,7 +137,12 @@ export const DataProvider = ({ children }) => {
     if (localData) {
       // Merge with initialData to ensure new keys exist for backwards compatibility
       const parsed = JSON.parse(localData);
-      return { ...initialData, ...parsed, content: { ...initialData.content, ...(parsed.content || {}) } };
+      return { 
+        ...initialData, 
+        ...parsed, 
+        content: { ...initialData.content, ...(parsed.content || {}) },
+        faculty: parsed.faculty || initialData.faculty
+      };
     }
     return initialData;
   });
