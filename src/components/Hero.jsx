@@ -41,7 +41,7 @@ export default function Hero() {
               key={i}
               className="text-canvas text-sm md:text-base font-bold uppercase tracking-[0.3em] whitespace-nowrap px-4"
             >
-              {content.marqueeText.repeat(4)}
+              {(content?.marqueeText || 'INNOVATE • CREATE • BUILD • CODE • LEARN • ').repeat(4)}
             </span>
           ))}
         </div>

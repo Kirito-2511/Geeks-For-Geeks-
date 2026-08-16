@@ -21,8 +21,14 @@ export default function Faculty() {
       </div>
 
       {/* FACULTY Section */}
-      {faculty && faculty.length > 0 && (
-        <div className="border-t border-brand/10">
+      <div className="border-t border-brand/10">
+        {(!faculty || faculty.length === 0) ? (
+          <div className="max-w-[1400px] mx-auto px-6 py-16 text-center">
+            <p className="text-sm font-bold uppercase tracking-wider text-brand/40">
+              No faculty profiles added yet. Add them in the Admin console.
+            </p>
+          </div>
+        ) : (
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 py-12 md:py-16 grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-12 justify-items-center">
             {faculty.map((member, i) => {
               return (
@@ -60,8 +66,8 @@ export default function Faculty() {
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* MODAL */}
       {selectedMember && (

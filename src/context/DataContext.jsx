@@ -6,28 +6,30 @@ export const DataContext = createContext();
 const LOCAL_STORAGE_KEY = 'gfg_club_data';
 
 export const DataProvider = ({ children }) => {
-  // Initialize from db.json or fallback
   const [data, setData] = useState(() => {
     try {
-      const local = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (local) {
-        const parsed = JSON.parse(local);
-        return {
-          ...initialDbData,
-          ...parsed,
-          content: { ...(initialDbData.content || {}), ...(parsed.content || {}) }
-        };
+      const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (localData) {
+        const parsed = JSON.parse(localData);
+        if (parsed && parsed.content) {
+          return {
+            ...initialDbData,
+            ...parsed,
+            content: { ...(initialDbData.content || {}), ...(parsed.content || {}) }
+          };
+        }
       }
     } catch (e) {
-      console.warn('Error loading localStorage data', e);
+      console.warn('Could not parse localStorage', e);
     }
     return initialDbData;
   });
 
-  const isInitialSyncDone = useRef(false);
+  const isSavingRef = useRef(false);
 
-  // Helper to persist data both locally and to the server disk
-  const persistToServerAndLocal = useCallback(async (newData) => {
+  // Helper to persist data to localStorage and server db.json file
+  const persistData = useCallback(async (newData) => {
+    isSavingRef.current = true;
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData));
     } catch (e) {
@@ -41,21 +43,31 @@ export const DataProvider = ({ children }) => {
         body: JSON.stringify(newData),
       });
     } catch (e) {
-      console.warn('Failed to sync data to /api/data server', e);
+      console.warn('Failed to post data to /api/data server', e);
+    } finally {
+      setTimeout(() => {
+        isSavingRef.current = false;
+      }, 500);
     }
   }, []);
 
-  // Fetch latest data from server
+  // Fetch the latest shared data from the server
   const fetchServerData = useCallback(async () => {
+    if (isSavingRef.current) return;
     try {
       const res = await fetch('/api/data');
       if (res.ok) {
         const serverData = await res.json();
         if (serverData && serverData.content) {
-          setData(prev => {
-            // Check if server data is different from current state
-            if (JSON.stringify(prev) !== JSON.stringify(serverData)) {
-              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(serverData));
+          setData((prev) => {
+            const prevStr = JSON.stringify(prev);
+            const nextStr = JSON.stringify(serverData);
+            if (prevStr !== nextStr) {
+              try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, nextStr);
+              } catch (e) {
+                // ignore
+              }
               return serverData;
             }
             return prev;
@@ -63,34 +75,16 @@ export const DataProvider = ({ children }) => {
         }
       }
     } catch (e) {
-      console.warn('Could not fetch /api/data', e);
+      // Offline fallback
     }
   }, []);
 
-  // Initial sync & periodic polling across devices
+  // Sync on startup and poll across network devices (PC <-> Phone)
   useEffect(() => {
-    async function initSync() {
-      try {
-        // If this client had existing local edits, upload them to server
-        const local = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (local) {
-          const parsed = JSON.parse(local);
-          if (parsed && parsed.content) {
-            await persistToServerAndLocal(parsed);
-          }
-        }
-        await fetchServerData();
-      } catch (e) {
-        console.warn('Init sync error', e);
-      } finally {
-        isInitialSyncDone.current = true;
-      }
-    }
+    fetchServerData();
 
-    initSync();
-
-    // Poll every 3 seconds so changes made in Admin console on PC immediately reflect on Phone
-    const interval = setInterval(fetchServerData, 3000);
+    // Poll every 2.5 seconds so changes in Admin immediately update connected phones/devices
+    const interval = setInterval(fetchServerData, 2500);
 
     const handleFocus = () => {
       fetchServerData();
@@ -103,66 +97,70 @@ export const DataProvider = ({ children }) => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('visibilitychange', handleFocus);
     };
-  }, [fetchServerData, persistToServerAndLocal]);
+  }, [fetchServerData]);
 
   // --- CRUD Operations ---
   const updateContent = (key, value) => {
-    setData(prev => {
+    setData((prev) => {
       const updated = {
         ...prev,
-        content: { ...prev.content, [key]: value }
+        content: { ...prev.content, [key]: value },
       };
-      persistToServerAndLocal(updated);
+      persistData(updated);
       return updated;
     });
   };
 
   const addItem = (category, item) => {
-    setData(prev => {
+    setData((prev) => {
       const updated = {
         ...prev,
-        [category]: [...(prev[category] || []), { ...item, id: Date.now().toString() }]
+        [category]: [...(prev[category] || []), { ...item, id: Date.now().toString() }],
       };
-      persistToServerAndLocal(updated);
+      persistData(updated);
       return updated;
     });
   };
 
   const updateItem = (category, id, updatedItem) => {
-    setData(prev => {
+    setData((prev) => {
       const updated = {
         ...prev,
-        [category]: (prev[category] || []).map(item => (item.id === id ? { ...item, ...updatedItem } : item)),
+        [category]: (prev[category] || []).map((item) =>
+          item.id === id ? { ...item, ...updatedItem } : item
+        ),
       };
-      persistToServerAndLocal(updated);
+      persistData(updated);
       return updated;
     });
   };
 
   const deleteItem = (category, id) => {
-    setData(prev => {
+    setData((prev) => {
       const updated = {
         ...prev,
-        [category]: (prev[category] || []).filter(item => item.id !== id),
+        [category]: (prev[category] || []).filter((item) => item.id !== id),
       };
-      persistToServerAndLocal(updated);
+      persistData(updated);
       return updated;
     });
   };
 
   const reorderItems = (category, reorderedArray) => {
-    setData(prev => {
+    setData((prev) => {
       const updated = {
         ...prev,
-        [category]: reorderedArray
+        [category]: reorderedArray,
       };
-      persistToServerAndLocal(updated);
+      persistData(updated);
       return updated;
     });
   };
 
   return (
-    <DataContext.Provider value={{ data, updateContent, addItem, updateItem, deleteItem, reorderItems }}>
+    <DataContext.Provider
+      value={{ data, updateContent, addItem, updateItem, deleteItem, reorderItems }}
+    >
       {children}
     </DataContext.Provider>
   );

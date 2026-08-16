@@ -91,7 +91,13 @@ function SortableRow({ item, keys, activeTab, onDelete, onEdit }) {
 }
 
 export default function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem('gfg_admin_auth') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('content');
   const [editingId, setEditingId] = useState(null);
@@ -107,8 +113,21 @@ export default function Admin() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === 'admin123') setIsAuthenticated(true);
-    else alert('Incorrect password');
+    if (password === 'admin123') {
+      try {
+        sessionStorage.setItem('gfg_admin_auth', 'true');
+      } catch (err) {}
+      setIsAuthenticated(true);
+    } else {
+      alert('Incorrect password');
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      sessionStorage.removeItem('gfg_admin_auth');
+    } catch (err) {}
+    setIsAuthenticated(false);
   };
 
   if (!isAuthenticated) {
@@ -264,6 +283,13 @@ export default function Admin() {
             {tab}
           </button>
         ))}
+
+        <button
+          onClick={handleLogout}
+          className="mt-auto text-left text-xs font-bold uppercase tracking-widest py-3 text-red-600 hover:text-red-700 transition-colors border-t border-brand/10 pt-6"
+        >
+          [ Log Out ]
+        </button>
       </div>
 
       {/* Main Content */}

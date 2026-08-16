@@ -3,17 +3,17 @@ import { DataContext } from '../context/DataContext';
 
 export default function About() {
   const { data } = useContext(DataContext);
-  const { content, stats, focusAreas } = data;
+  const { content = {}, stats = [], focusAreas = [] } = data || {};
 
   return (
     <section id="about" className="border-b border-brand/10">
       {/* Section label */}
       <div className="px-6 md:px-10 max-w-[1400px] mx-auto py-20">
         <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-brand/40 mb-4 whitespace-pre-line">
-          {content.aboutLabel}
+          {content.aboutLabel || 'About'}
         </p>
         <h2 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tighter text-brand leading-[0.9] whitespace-pre-line">
-          {content.aboutHeadline}
+          {content.aboutHeadline || 'More than\na club'}
         </h2>
       </div>
 
@@ -21,23 +21,25 @@ export default function About() {
       <div className="border-t border-brand/10">
 
         {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4">
-          {stats.map(({ id, value, label }, i) => (
-            <div
-              key={id}
-              className={`px-6 md:px-10 py-10 md:py-14 ${
-                i < stats.length - 1 ? 'border-r border-brand/10' : ''
-              } border-b border-brand/10`}
-            >
-              <p className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-brand">
-                {value}
-              </p>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand/40 mt-3">
-                {label}
-              </p>
-            </div>
-          ))}
-        </div>
+        {stats && stats.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4">
+            {stats.map(({ id, value, label }, i) => (
+              <div
+                key={id}
+                className={`px-6 md:px-10 py-10 md:py-14 ${
+                  i < stats.length - 1 ? 'border-r border-brand/10' : ''
+                } border-b border-brand/10`}
+              >
+                <p className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-brand">
+                  {value}
+                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand/40 mt-3">
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Content bento */}
         <div className="grid md:grid-cols-3">

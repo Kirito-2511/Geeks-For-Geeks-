@@ -370,6 +370,17 @@ export default function Team() {
         </div>
       )}
 
+      {/* Empty State when no team members exist */}
+      {(!team || team.length === 0) && (
+        <div className="border-t border-brand/10">
+          <div className="max-w-[1400px] mx-auto px-6 py-16 text-center">
+            <p className="text-sm font-bold uppercase tracking-wider text-brand/40">
+              No team members added yet. Add them in the Admin console.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* MODAL */}
       {selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-canvas/80 backdrop-blur-md">
