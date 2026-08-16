@@ -23,15 +23,15 @@ export default function Faculty() {
       {/* FACULTY Section */}
       {faculty && faculty.length > 0 && (
         <div className="border-t border-brand/10">
-          <div className="max-w-[1400px] mx-auto px-6 py-16 flex flex-wrap justify-center items-center gap-10">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 py-12 md:py-16 grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-12 justify-items-center">
             {faculty.map((member, i) => {
               return (
                 <div 
                   key={member.id} 
-                  className="flex flex-col items-center group cursor-pointer"
+                  className="flex flex-col items-center group w-full max-w-[160px] sm:max-w-[200px] md:w-auto cursor-pointer"
                   onClick={() => setSelectedMember(member)}
                 >
-                  <div className="transition-transform duration-500 mb-6 flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40">
+                  <div className="transition-transform duration-500 mb-3 sm:mb-6 flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
                     {member.image ? (
                       <img 
                         src={member.image} 
@@ -49,10 +49,10 @@ export default function Faculty() {
                     )}
                   </div>
                   <div className="text-center">
-                    <p className="font-black uppercase tracking-tighter text-brand mb-1 transition-colors group-hover:text-accent text-2xl sm:text-3xl">
+                    <p className="font-black uppercase tracking-tighter text-brand mb-1 transition-colors group-hover:text-accent text-base sm:text-2xl md:text-3xl">
                       {member.name}
                     </p>
-                    <span className="inline-block px-3 py-1 border border-brand/20 text-[10px] font-bold uppercase tracking-[0.2em] text-brand/60 group-hover:border-accent/40 transition-colors">
+                    <span className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 border border-brand/20 text-[8px] sm:text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-brand/60 group-hover:border-accent/40 transition-colors">
                       {member.role}
                     </span>
                   </div>
