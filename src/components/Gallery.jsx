@@ -201,8 +201,8 @@ export default function Gallery() {
 
       {/* ── Dynamic Layouts ─────────────────────────────────────────────── */}
       {viewMode === 'collage' ? (
-        /* Masonry Collage View: Preserves natural dimensions */
-        <div className="px-6 md:px-10 max-w-[1400px] mx-auto">
+        /* Masonry Collage View: Multi-column on mobile and desktop */
+        <div className="px-3 sm:px-6 md:px-10 max-w-[1400px] mx-auto">
           {gallery.length === 0 ? (
             <div className="p-12 text-center border border-dashed border-brand/20 rounded-2xl bg-brand/[0.01]">
               <p className="text-sm font-bold uppercase tracking-wider text-brand/60">
@@ -210,12 +210,12 @@ export default function Gallery() {
               </p>
             </div>
           ) : (
-            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+            <div className="columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4 md:gap-6 space-y-3 sm:space-y-4 md:space-y-6">
               {gallery.map(({ id, media, label, eventTitle }, idx) => (
                 <div
                   key={id}
                   onClick={() => setSelectedIndex(idx)}
-                  className="gallery-item break-inside-avoid relative rounded-2xl overflow-hidden border border-brand/15 bg-brand/[0.02] shadow-sm hover:shadow-xl hover:border-accent/50 transition-all duration-300 cursor-pointer group"
+                  className="gallery-item break-inside-avoid relative rounded-xl sm:rounded-2xl overflow-hidden border border-brand/15 bg-brand/[0.02] shadow-sm hover:shadow-xl hover:border-accent/50 transition-all duration-300 cursor-pointer group"
                 >
                   {media ? (
                     media.startsWith('data:video') ? (
@@ -236,25 +236,25 @@ export default function Gallery() {
                       />
                     )
                   ) : (
-                    <div className="w-full h-64 bg-brand/10 flex items-center justify-center text-brand/30 text-xs font-bold uppercase tracking-widest">
+                    <div className="w-full h-44 sm:h-64 bg-brand/10 flex items-center justify-center text-brand/30 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
                       No Media
                     </div>
                   )}
 
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-between p-5">
+                  {/* Hover / Tap overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-between p-3 sm:p-4 md:p-5">
                     <div className="flex justify-between items-start">
                       {eventTitle && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/50 text-canvas/90 backdrop-blur-sm border border-white/10">
+                        <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-black/60 text-canvas/90 backdrop-blur-sm border border-white/10 line-clamp-1 max-w-[80%]">
                           {eventTitle}
                         </span>
                       )}
-                      <span className="p-2 rounded-full bg-white/20 text-white backdrop-blur-sm shadow-md ml-auto">
-                        <Maximize2 className="w-4 h-4" />
+                      <span className="p-1.5 sm:p-2 rounded-full bg-white/20 text-white backdrop-blur-sm shadow-md ml-auto">
+                        <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       </span>
                     </div>
                     <div>
-                      <span className="text-canvas text-xs md:text-sm font-bold uppercase tracking-widest drop-shadow-md">
+                      <span className="text-canvas text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-wider drop-shadow-md line-clamp-2">
                         {label || 'View Photo'}
                       </span>
                     </div>
@@ -266,7 +266,7 @@ export default function Gallery() {
         </div>
       ) : (
         /* Event Carousels View: Groups by Event Headings */
-        <div className="px-6 md:px-10 max-w-[1400px] mx-auto space-y-16">
+        <div className="px-4 sm:px-6 md:px-10 max-w-[1400px] mx-auto space-y-12 sm:space-y-16">
           {eventGroups.length === 0 ? (
             <div className="p-12 text-center border border-dashed border-brand/20 rounded-2xl bg-brand/[0.01]">
               <p className="text-sm font-bold uppercase tracking-wider text-brand/60">

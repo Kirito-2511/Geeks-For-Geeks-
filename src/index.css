@@ -35,10 +35,8 @@
   display: flex;
   width: max-content;
   animation: marquee 35s linear infinite;
-}
-
-.marquee-track:hover {
-  animation-play-state: paused;
+  pointer-events: none;
+  user-select: none;
 }
 
 @keyframes marquee {

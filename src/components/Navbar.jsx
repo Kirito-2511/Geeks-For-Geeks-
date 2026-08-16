@@ -21,7 +21,7 @@ export default function Navbar() {
       <div className="max-w-[1400px] mx-auto flex items-center justify-between px-6 md:px-10 py-4">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
+        <Link to="/" className="flex items-center gap-2 group">
           <img src="/logo.png" alt="GFG Logo" className="h-8 w-auto object-contain" />
           <span className="text-lg font-extrabold tracking-tight text-brand uppercase">X KDKCE
           </span>
