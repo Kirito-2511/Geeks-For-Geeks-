@@ -181,8 +181,10 @@ const initialData = {
     },
   ],
   gallery: [
-    { id: '1', label: 'Hackathon 2024', span: 'col-span-2 row-span-2', media: '' },
-    { id: '2', label: 'Workshop', span: 'col-span-1 row-span-1', media: '' },
+    { id: '1', eventTitle: 'Event 1: NIRVANA Mega Fest 2026', label: 'Opening Keynote & Inauguration', media: '' },
+    { id: '2', eventTitle: 'Event 1: NIRVANA Mega Fest 2026', label: 'Robotics Showcase', media: '' },
+    { id: '3', eventTitle: 'Event 2: Web Dev Bootcamp', label: 'Frontend Masterclass', media: '' },
+    { id: '4', eventTitle: 'Event 2: Web Dev Bootcamp', label: 'Team Hack Sprint', media: '' },
   ]
 };
 
@@ -209,7 +211,15 @@ export const DataProvider = ({ children }) => {
               status: 'Upcoming',
               ...ev
             }))
-          : initialData.events
+          : initialData.events,
+        gallery: (parsed.gallery && parsed.gallery.length > 0)
+          ? parsed.gallery.map(g => ({
+              eventTitle: g.eventTitle || 'Event 1: Club Highlights',
+              label: g.label || 'Moments',
+              media: g.media || '',
+              ...g
+            }))
+          : initialData.gallery
       };
     }
     return initialData;

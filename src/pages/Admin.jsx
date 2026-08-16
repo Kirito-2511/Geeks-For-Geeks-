@@ -158,6 +158,7 @@ export default function Admin() {
       delete itemData.fileData;
     } else if (activeTab === 'gallery') {
       if (formData.fileData) itemData.media = formData.fileData;
+      if (!itemData.eventTitle) itemData.eventTitle = 'Event 1: Highlights';
       itemData.span = 'col-span-1 row-span-1';
       delete itemData.fileData;
     }
@@ -242,7 +243,7 @@ export default function Admin() {
     events: ['title', 'date', 'time', 'location', 'type', 'status', 'description', 'link'],
     team: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'],
     faculty: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'],
-    gallery: ['label'],
+    gallery: ['eventTitle', 'label'],
     stats: ['value', 'label'],
     focusAreas: ['label']
   };
@@ -403,6 +404,38 @@ export default function Admin() {
                     );
                   }
                   
+                  if (field === 'eventTitle' && activeTab === 'gallery') {
+                    const eventSuggestions = Array.from(
+                      new Set([
+                        ...(data.events || []).map((e) => e.title),
+                        ...(data.gallery || []).map((g) => g.eventTitle).filter(Boolean)
+                      ])
+                    );
+
+                    return (
+                      <div key={field} className="flex flex-col gap-1 sm:col-span-2">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
+                          Event / Carousel Heading (e.g. "Event 1: NIRVANA 2026", "Event 2: Web Dev Bootcamp") *
+                        </label>
+                        <input
+                          type="text"
+                          name="eventTitle"
+                          placeholder="E.G. EVENT 1: NIRVANA 2026"
+                          value={formData.eventTitle || ''}
+                          onChange={handleInputChange}
+                          list="gallery-event-headings"
+                          required
+                          className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
+                        />
+                        <datalist id="gallery-event-headings">
+                          {eventSuggestions.map((t) => (
+                            <option key={t} value={t} />
+                          ))}
+                        </datalist>
+                      </div>
+                    );
+                  }
+
                   const isUrl = field === 'linkedin' || field === 'github' || field === 'instagram' || field === 'link';
                   const isEmail = field === 'email';
                   let type = 'text';
@@ -413,11 +446,12 @@ export default function Admin() {
                   if (field === 'time') placeholder = 'TIME (E.G. 10:00 AM)';
                   if (field === 'location') placeholder = 'LOCATION / VENUE (E.G. KDKCE AUDITORIUM)';
                   if (field === 'link') placeholder = 'REGISTRATION / INFO LINK (OPTIONAL)';
+                  if (field === 'label' && activeTab === 'gallery') placeholder = 'PHOTO CAPTION / LABEL (E.G. OPENING CEREMONY)';
 
                   return (
                     <div key={field} className="flex flex-col gap-1">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
-                        {field.toUpperCase()}
+                        {field === 'label' && activeTab === 'gallery' ? 'PHOTO CAPTION / LABEL' : field.toUpperCase()}
                       </label>
                       <input
                         type={type}
