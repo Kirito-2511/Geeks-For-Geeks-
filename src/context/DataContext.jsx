@@ -19,8 +19,8 @@ const initialData = {
     aboutOpenSubHeadline2: 'All Branches',
     aboutOpenFooter: 'No prerequisites. Just curiosity.',
 
-    eventsLabel: 'Events',
-    eventsHeadline: 'What\'s\nhappening',
+    eventsLabel: 'SCHEDULE',
+    eventsHeadline: 'Upcoming &\nPast Events',
     
     galleryLabel: 'Gallery',
     galleryHeadline: 'Moments\nthat matter',
@@ -51,9 +51,61 @@ const initialData = {
     { id: '6', label: 'Competitive Programming' }
   ],
   events: [
-    { id: '1', date: 'AUG 28', title: 'Workshop: React Fundamentals', type: 'Workshop', status: 'Upcoming' },
-    { id: '2', date: 'SEP 05', title: 'Hackathon — Code for Change', type: 'Competition', status: 'Registration Open' },
-    { id: '3', date: 'SEP 12', title: 'Tech Talk: System Design at Scale', type: 'Talk', status: 'Upcoming' },
+    { 
+      id: '1', 
+      date: '2026-08-28', 
+      title: 'NIRVANA – The Mega Fest 🌟 📌 Theme: Summer Aesthetic', 
+      time: '10:00 AM', 
+      location: 'KDKCE Main Ground', 
+      type: 'Mega Fest', 
+      status: 'Upcoming', 
+      description: 'The flagship annual festival featuring tech competitions, project exhibitions, gaming arena, and musical showcases.',
+      link: '#'
+    },
+    { 
+      id: '2', 
+      date: '2026-08-28', 
+      title: 'NIRVANA FLASH MOB 2026 ✨', 
+      time: '02:30 PM', 
+      location: 'Central Courtyard', 
+      type: 'Cultural', 
+      status: 'Upcoming', 
+      description: 'High-energy surprise flash mob performance by the GFG creative troupe.',
+      link: '#'
+    },
+    { 
+      id: '3', 
+      date: '2026-08-15', 
+      title: 'NIRVANA STUDENT PARLIAMENT 2026', 
+      time: '11:00 AM', 
+      location: 'Auditorium 1', 
+      type: 'Leadership', 
+      status: 'Completed', 
+      description: 'Student body forum to discuss tech club initiatives and roadmap for the academic year.',
+      link: '#'
+    },
+    { 
+      id: '4', 
+      date: '2026-09-05', 
+      title: 'Workshop: React & Full-Stack Architecture', 
+      time: '10:30 AM', 
+      location: 'Lab 3, CS Dept', 
+      type: 'Workshop', 
+      status: 'Upcoming', 
+      description: 'Hands-on frontend engineering session covering state management, performance optimization, and APIs.',
+      link: '#'
+    },
+    { 
+      id: '5', 
+      date: '2026-09-18', 
+      title: 'Hackathon — Code for Change 🚀', 
+      time: '09:00 AM', 
+      location: 'Innovation Hub', 
+      type: 'Competition', 
+      status: 'Registration Open', 
+      description: '24-hour national hackathon challenging student engineers to build impactful solutions.',
+      link: '#'
+    },
   ],
   faculty: [
     { 
@@ -146,7 +198,18 @@ export const DataProvider = ({ children }) => {
         ...initialData, 
         ...parsed, 
         content: { ...initialData.content, ...(parsed.content || {}) },
-        faculty: parsed.faculty || initialData.faculty
+        faculty: parsed.faculty || initialData.faculty,
+        events: (parsed.events && parsed.events.length > 0)
+          ? parsed.events.map(ev => ({
+              time: '10:00 AM',
+              location: 'KDKCE',
+              description: '',
+              link: '#',
+              type: 'Event',
+              status: 'Upcoming',
+              ...ev
+            }))
+          : initialData.events
       };
     }
     return initialData;

@@ -34,21 +34,50 @@
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee 20s linear infinite;
+  animation: marquee 35s linear infinite;
 }
 
 .marquee-track:hover {
   animation-play-state: paused;
 }
 
-/* ── Gallery grayscale effect ─────────────────────────────────────────── */
-.gallery-item img {
-  filter: grayscale(100%);
-  transition: filter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+@keyframes marquee {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
 }
 
-.gallery-item:hover img {
-  filter: grayscale(0%);
+/* ── Gallery item transitions ─────────────────────────────────────────── */
+.gallery-item img,
+.gallery-item video {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Event Timeline & Calendar Highlight ───────────────────────────────── */
+@keyframes eventPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    background-color: rgba(76, 175, 80, 0.2);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(76, 175, 80, 0);
+    background-color: rgba(76, 175, 80, 0.1);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.event-target-highlight {
+  animation: eventPulse 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: #4caf50 !important;
 }
 
 /* ── Lenis Smooth Scrolling ────────────────────────────────────────────── */

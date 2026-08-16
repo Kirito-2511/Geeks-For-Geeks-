@@ -19,8 +19,8 @@ export default {
       },
       keyframes: {
         marquee: {
-          '0%':   { transform: 'translateX(0%)' },
-          '100%': { transform: 'translateX(-50%)' },
+          '0%':   { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0%)' },
         },
         fadeUp: {
           from: { opacity: '0', transform: 'translateY(30px)' },
@@ -28,7 +28,7 @@ export default {
         },
       },
       animation: {
-        marquee: 'marquee 20s linear infinite',
+        marquee: 'marquee 35s linear infinite',
         fadeUp:  'fadeUp 0.8s ease-out forwards',
       },
     },

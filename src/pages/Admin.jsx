@@ -202,8 +202,8 @@ export default function Admin() {
   const renderTable = (items) => {
     if (!items || items.length === 0) return <p className="text-brand/50 uppercase tracking-widest text-sm py-4">No items found.</p>;
     
-    // For Team, only show essential keys in table so it doesn't overflow
-    const ignoreKeys = ['id', 'image', 'media', 'bg', 'span', 'description', 'linkedin', 'github', 'instagram', 'email'];
+    // For Team and Events, only show essential keys in table so it doesn't overflow
+    const ignoreKeys = ['id', 'image', 'media', 'bg', 'span', 'description', 'linkedin', 'github', 'instagram', 'email', 'link'];
     const keys = Object.keys(items[0]).filter(k => !ignoreKeys.includes(k));
 
     return (
@@ -239,8 +239,8 @@ export default function Admin() {
   };
 
   const formFields = {
-    events: ['date', 'title', 'type', 'status'],
-    team: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'], // Added new fields
+    events: ['title', 'date', 'time', 'location', 'type', 'status', 'description', 'link'],
+    team: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'],
     faculty: ['name', 'role', 'branch', 'domain', 'email', 'linkedin', 'github', 'instagram', 'description'],
     gallery: ['label'],
     stats: ['value', 'label'],
@@ -267,7 +267,14 @@ export default function Admin() {
 
       {/* Main Content */}
       <div className="flex-1 p-6 md:p-10 max-w-5xl">
-        <h2 className="text-4xl font-black uppercase tracking-tighter text-brand mb-10">Manage {activeTab}</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+          <h2 className="text-4xl font-black uppercase tracking-tighter text-brand">Manage {activeTab}</h2>
+          {activeTab === 'events' && (
+            <span className="text-xs font-bold uppercase tracking-wider text-accent bg-accent/10 px-3 py-1.5 rounded-full border border-accent/20">
+              📅 Calendar Highlighting Enabled
+            </span>
+          )}
+        </div>
 
         {activeTab === 'content' ? (
           <div className="space-y-12">
@@ -312,41 +319,122 @@ export default function Admin() {
                   if (field === 'description') {
                     return (
                       <div key={field} className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-brand/50 mb-1">
+                          Description
+                        </label>
                         <textarea
                           name={field}
-                          placeholder={field.toUpperCase()}
+                          placeholder="EVENT DETAILS / DESCRIPTION"
                           value={formData[field] || ''}
                           onChange={handleInputChange}
                           rows={3}
-                          className="w-full bg-transparent border border-brand/20 p-4 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none resize-none"
+                          className="w-full bg-transparent border border-brand/20 p-4 text-sm font-medium text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none resize-none"
                         />
                       </div>
                     );
                   }
+
+                  if (field === 'date') {
+                    return (
+                      <div key={field} className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
+                          Date (Highlights Day on Calendar) *
+                        </label>
+                        <input
+                          type="date"
+                          name="date"
+                          value={formData.date || ''}
+                          onChange={handleInputChange}
+                          required
+                          className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand outline-none focus:border-accent transition-colors rounded-none"
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (field === 'status' && activeTab === 'events') {
+                    return (
+                      <div key={field} className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
+                          Event Status
+                        </label>
+                        <select
+                          name="status"
+                          value={formData.status || 'Upcoming'}
+                          onChange={handleInputChange}
+                          className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand outline-none focus:border-accent transition-colors rounded-none cursor-pointer"
+                        >
+                          <option value="Upcoming">Upcoming</option>
+                          <option value="Registration Open">Registration Open</option>
+                          <option value="Live">Live / Happening Today</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Postponed">Postponed</option>
+                        </select>
+                      </div>
+                    );
+                  }
+
+                  if (field === 'type' && activeTab === 'events') {
+                    return (
+                      <div key={field} className="flex flex-col gap-1">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
+                          Event Type / Category
+                        </label>
+                        <input
+                          type="text"
+                          name="type"
+                          placeholder="E.G. MEGA FEST, WORKSHOP, TALK"
+                          value={formData.type || ''}
+                          onChange={handleInputChange}
+                          list="event-types"
+                          className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
+                        />
+                        <datalist id="event-types">
+                          <option value="Mega Fest" />
+                          <option value="Workshop" />
+                          <option value="Competition" />
+                          <option value="Hackathon" />
+                          <option value="Talk" />
+                          <option value="Cultural" />
+                          <option value="Leadership" />
+                          <option value="Meetup" />
+                        </datalist>
+                      </div>
+                    );
+                  }
                   
-                  const isUrl = field === 'linkedin' || field === 'github' || field === 'instagram';
+                  const isUrl = field === 'linkedin' || field === 'github' || field === 'instagram' || field === 'link';
                   const isEmail = field === 'email';
                   let type = 'text';
                   if (isUrl) type = 'url';
                   if (isEmail) type = 'email';
 
+                  let placeholder = field.toUpperCase();
+                  if (field === 'time') placeholder = 'TIME (E.G. 10:00 AM)';
+                  if (field === 'location') placeholder = 'LOCATION / VENUE (E.G. KDKCE AUDITORIUM)';
+                  if (field === 'link') placeholder = 'REGISTRATION / INFO LINK (OPTIONAL)';
+
                   return (
-                    <input
-                      key={field}
-                      type={type}
-                      name={field}
-                      placeholder={field.toUpperCase()}
-                      value={formData[field] || ''}
-                      onChange={handleInputChange}
-                      required={field === 'name' || field === 'role' || field === 'date' || field === 'title' || field === 'label' || field === 'value'}
-                      className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
-                    />
+                    <div key={field} className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
+                        {field.toUpperCase()}
+                      </label>
+                      <input
+                        type={type}
+                        name={field}
+                        placeholder={placeholder}
+                        value={formData[field] || ''}
+                        onChange={handleInputChange}
+                        required={field === 'name' || field === 'role' || field === 'title' || field === 'label' || field === 'value'}
+                        className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
+                      />
+                    </div>
                   );
                 })}
                 
                 {/* Team Level Dropdown */}
                 {activeTab === 'team' && (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-1">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand/50">Level</span>
                     <select
                       name="level"
