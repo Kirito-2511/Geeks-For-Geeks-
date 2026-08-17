@@ -19,7 +19,19 @@ const authPlugin = () => ({
       // --- POST /api/auth  (login) ---
       if (req.url === '/api/auth' && req.method === 'POST') {
         let body = ''
-        req.on('data', chunk => { body += chunk })
+        let bodySize = 0
+        const MAX_AUTH_BODY = 1024 // 1 KB — auth payloads are tiny
+        req.on('data', chunk => {
+          bodySize += chunk.length
+          if (bodySize > MAX_AUTH_BODY) {
+            res.statusCode = 413
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Payload too large' }))
+            req.destroy()
+            return
+          }
+          body += chunk
+        })
         req.on('end', () => {
           try {
             const { password } = JSON.parse(body)
@@ -52,7 +64,19 @@ const authPlugin = () => ({
       // --- POST /api/auth/verify  (token validation) ---
       if (req.url === '/api/auth/verify' && req.method === 'POST') {
         let body = ''
-        req.on('data', chunk => { body += chunk })
+        let bodySize = 0
+        const MAX_AUTH_BODY = 1024
+        req.on('data', chunk => {
+          bodySize += chunk.length
+          if (bodySize > MAX_AUTH_BODY) {
+            res.statusCode = 413
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Payload too large' }))
+            req.destroy()
+            return
+          }
+          body += chunk
+        })
         req.on('end', () => {
           try {
             const { token } = JSON.parse(body)
@@ -71,7 +95,19 @@ const authPlugin = () => ({
       // --- POST /api/auth/logout  (token invalidation) ---
       if (req.url === '/api/auth/logout' && req.method === 'POST') {
         let body = ''
-        req.on('data', chunk => { body += chunk })
+        let bodySize = 0
+        const MAX_AUTH_BODY = 1024
+        req.on('data', chunk => {
+          bodySize += chunk.length
+          if (bodySize > MAX_AUTH_BODY) {
+            res.statusCode = 413
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Payload too large' }))
+            req.destroy()
+            return
+          }
+          body += chunk
+        })
         req.on('end', () => {
           try {
             const { token } = JSON.parse(body)
