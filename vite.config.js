@@ -239,7 +239,7 @@ const securityHeadersPlugin = () => ({
 export default defineConfig({
   plugins: [react(), securityHeadersPlugin(), authPlugin(), dbPlugin()],
   server: {
-    host: true, // Allow external devices (phones on local network) to connect
+    host: false, // Localhost-only by default — use `npm run dev:network` for LAN access
     watch: {
       ignored: ['**/src/data/db.json', '**/db.json', '**/.git/**']
     }
