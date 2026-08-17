@@ -213,6 +213,17 @@ const securityHeadersPlugin = () => ({
   name: 'security-headers-plugin',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
+      // CSP as HTTP header — allows Vite HMR and external images
+      const csp = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self'",
+        "frame-ancestors 'none'"
+      ].join('; ')
+      res.setHeader('Content-Security-Policy', csp)
       res.setHeader('X-Content-Type-Options', 'nosniff')
       res.setHeader('X-Frame-Options', 'DENY')
       res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
