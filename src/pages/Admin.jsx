@@ -105,6 +105,7 @@ export default function Admin() {
 
   const { data, updateContent, addItem, updateItem, deleteItem, reorderItems } = useContext(DataContext);
   const [formData, setFormData] = useState({});
+  const fileInputRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -210,7 +211,7 @@ export default function Admin() {
     const itemData = { ...formData };
 
     // Sanitize URL fields before saving
-    const urlFields = ['linkedin', 'github', 'instagram', 'link'];
+    const urlFields = ['linkedin', 'github', 'instagram', 'link', 'image', 'media'];
     urlFields.forEach((field) => {
       if (itemData[field]) {
         itemData[field] = sanitizeUrl(itemData[field]);
@@ -218,14 +219,10 @@ export default function Admin() {
     });
 
     if (activeTab === 'team' || activeTab === 'faculty') {
-      if (itemData.imageUrl) itemData.image = itemData.imageUrl;
       if (activeTab === 'team' && !itemData.level) itemData.level = 'MEMBERS'; // default
-      delete itemData.imageUrl;
     } else if (activeTab === 'gallery') {
-      if (itemData.imageUrl) itemData.media = itemData.imageUrl;
       if (!itemData.eventTitle) itemData.eventTitle = 'Event 1: Highlights';
       itemData.span = 'col-span-1 row-span-1';
-      delete itemData.imageUrl;
     }
 
     if (editingId) {
@@ -242,9 +239,6 @@ export default function Admin() {
     setEditingId(item.id);
     const formCopy = { ...item };
     delete formCopy.id;
-    // Map image/media back to imageUrl so the input field can display it
-    if (formCopy.image) formCopy.imageUrl = formCopy.image;
-    if (formCopy.media) formCopy.imageUrl = formCopy.media;
     setFormData(formCopy);
   };
 
@@ -595,12 +589,11 @@ export default function Admin() {
                     </span>
                     <input
                       type="url"
-                      name="imageUrl"
                       placeholder="HTTPS://IMGUR.COM/EXAMPLE.JPG"
-                      value={formData.imageUrl || ''}
-                      onChange={handleInputChange}
+                      value={formData[activeTab === 'gallery' ? 'media' : 'image'] || ''}
+                      onChange={(e) => setFormData({ ...formData, [activeTab === 'gallery' ? 'media' : 'image']: e.target.value })}
                       required={!editingId && activeTab === 'gallery'}
-                      className="w-full bg-transparent border-b border-brand/20 px-0 py-2 text-xs font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 focus:border-accent transition-colors rounded-none outline-none"
+                      className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
                     />
                   </div>
                 )}
