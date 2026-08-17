@@ -1,6 +1,8 @@
 import React, { useState, useContext, useRef } from 'react';
 import { DataContext } from '../context/DataContext';
 import { sanitizeUrl } from '../utils/sanitize';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase';
 import { 
   DndContext, 
   closestCenter, 
@@ -211,15 +213,11 @@ export default function Admin() {
         e.target.value = '';
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, fileData: reader.result });
-      };
-      reader.readAsDataURL(file);
+      setFormData({ ...formData, rawFile: file });
     }
   };
 
-  const handleAddOrUpdateItem = (e) => {
+  const handleAddOrUpdateItem = async (e) => {
     e.preventDefault();
     const itemData = { ...formData };
     
@@ -230,16 +228,32 @@ export default function Admin() {
         itemData[field] = sanitizeUrl(itemData[field]);
       }
     });
+
+    if (itemData.rawFile) {
+      try {
+        const fileRef = ref(storage, `uploads/${Date.now()}_${itemData.rawFile.name}`);
+        await uploadBytes(fileRef, itemData.rawFile);
+        itemData.fileUrl = await getDownloadURL(fileRef);
+      } catch (error) {
+        console.error("Storage upload failed:", error);
+        alert("Image upload failed. Please try again.");
+        return; // Halt submission
+      }
+    }
     
     if (activeTab === 'team' || activeTab === 'faculty') {
-      if (formData.fileData) itemData.image = formData.fileData;
+      if (itemData.fileUrl) itemData.image = itemData.fileUrl;
       if (activeTab === 'team' && !itemData.level) itemData.level = 'MEMBERS'; // default
       delete itemData.fileData;
+      delete itemData.fileUrl;
+      delete itemData.rawFile;
     } else if (activeTab === 'gallery') {
-      if (formData.fileData) itemData.media = formData.fileData;
+      if (itemData.fileUrl) itemData.media = itemData.fileUrl;
       if (!itemData.eventTitle) itemData.eventTitle = 'Event 1: Highlights';
       itemData.span = 'col-span-1 row-span-1';
       delete itemData.fileData;
+      delete itemData.fileUrl;
+      delete itemData.rawFile;
     }
 
     if (editingId) {
