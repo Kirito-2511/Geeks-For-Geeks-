@@ -66,6 +66,8 @@ export default function Contact() {
               <a
                 key={social}
                 href="#"
+                rel="noopener noreferrer"
+                target="_blank"
                 className="text-xs font-bold uppercase tracking-widest text-brand/40 hover:text-brand transition-colors"
               >
                 {social}
