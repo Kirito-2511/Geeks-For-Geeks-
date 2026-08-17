@@ -1,8 +1,9 @@
 import React, { useState, useContext, useRef } from 'react';
 import { DataContext } from '../context/DataContext';
 import { sanitizeUrl } from '../utils/sanitize';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase';
+import { storage, auth } from '../firebase';
 import { 
   DndContext, 
   closestCenter, 
@@ -96,6 +97,7 @@ function SortableRow({ item, keys, activeTab, onDelete, onEdit }) {
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('content');
   const [editingId, setEditingId] = useState(null);
@@ -109,64 +111,34 @@ export default function Admin() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // Verify stored token on mount
   React.useEffect(() => {
-    const token = sessionStorage.getItem('gfg_admin_token');
-    if (!token) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
       setIsCheckingAuth(false);
-      return;
-    }
-    fetch('/api/auth/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    })
-      .then(res => res.json())
-      .then(({ valid }) => {
-        if (valid) {
-          setIsAuthenticated(true);
-        } else {
-          sessionStorage.removeItem('gfg_admin_token');
-        }
-      })
-      .catch(() => {
-        sessionStorage.removeItem('gfg_admin_token');
-      })
-      .finally(() => setIsCheckingAuth(false));
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      if (res.ok) {
-        const { token } = await res.json();
-        sessionStorage.setItem('gfg_admin_token', token);
-        setIsAuthenticated(true);
-      } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || 'Incorrect password');
-      }
-    } catch (err) {
-      alert('Login failed — is the dev server running?');
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      console.error("Auth Error:", error.message);
+      alert("Invalid admin credentials.");
     }
   };
 
   const handleLogout = async () => {
-    const token = sessionStorage.getItem('gfg_admin_token');
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-    } catch (e) { /* best-effort */ }
-    sessionStorage.removeItem('gfg_admin_token');
-    setIsAuthenticated(false);
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+    }
   };
 
   if (isCheckingAuth) {
@@ -184,6 +156,13 @@ export default function Admin() {
           <h1 className="text-4xl font-black uppercase tracking-tighter text-brand text-center">
             Admin Login
           </h1>
+          <input
+            type="email"
+            placeholder="EMAIL"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-transparent border-b border-brand/20 px-0 py-4 text-lg font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none text-center"
+          />
           <input
             type="password"
             placeholder="PASSWORD"
