@@ -3,7 +3,6 @@ import { DataContext } from '../context/DataContext';
 import { sanitizeUrl } from '../utils/sanitize';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage, auth, db } from '../firebase';
 import seedData from '../data/seed.json';
 import {
@@ -106,7 +105,6 @@ export default function Admin() {
 
   const { data, updateContent, addItem, updateItem, deleteItem, reorderItems } = useContext(DataContext);
   const [formData, setFormData] = useState({});
-  const fileInputRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -207,20 +205,6 @@ export default function Admin() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        alert(`File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024} MB.`);
-        e.target.value = '';
-        return;
-      }
-      setFormData({ ...formData, rawFile: file });
-    }
-  };
-
   const handleAddOrUpdateItem = async (e) => {
     e.preventDefault();
     const itemData = { ...formData };
@@ -233,31 +217,15 @@ export default function Admin() {
       }
     });
 
-    if (itemData.rawFile) {
-      try {
-        const fileRef = ref(storage, `uploads/${Date.now()}_${itemData.rawFile.name}`);
-        await uploadBytes(fileRef, itemData.rawFile);
-        itemData.fileUrl = await getDownloadURL(fileRef);
-      } catch (error) {
-        console.error("Storage upload failed:", error);
-        alert("Image upload failed. Please try again.");
-        return; // Halt submission
-      }
-    }
-
     if (activeTab === 'team' || activeTab === 'faculty') {
-      if (itemData.fileUrl) itemData.image = itemData.fileUrl;
+      if (itemData.imageUrl) itemData.image = itemData.imageUrl;
       if (activeTab === 'team' && !itemData.level) itemData.level = 'MEMBERS'; // default
-      delete itemData.fileData;
-      delete itemData.fileUrl;
-      delete itemData.rawFile;
+      delete itemData.imageUrl;
     } else if (activeTab === 'gallery') {
-      if (itemData.fileUrl) itemData.media = itemData.fileUrl;
+      if (itemData.imageUrl) itemData.media = itemData.imageUrl;
       if (!itemData.eventTitle) itemData.eventTitle = 'Event 1: Highlights';
       itemData.span = 'col-span-1 row-span-1';
-      delete itemData.fileData;
-      delete itemData.fileUrl;
-      delete itemData.rawFile;
+      delete itemData.imageUrl;
     }
 
     if (editingId) {
@@ -268,22 +236,21 @@ export default function Admin() {
     }
 
     setFormData({});
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const initiateEdit = (item) => {
     setEditingId(item.id);
     const formCopy = { ...item };
     delete formCopy.id;
-    // Don't carry over raw large base64 to input fields, but keep them for reference if needed
+    // Map image/media back to imageUrl so the input field can display it
+    if (formCopy.image) formCopy.imageUrl = formCopy.image;
+    if (formCopy.media) formCopy.imageUrl = formCopy.media;
     setFormData(formCopy);
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setFormData({});
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDragEnd = (event) => {
@@ -620,19 +587,20 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* File Upload for Team, Faculty, and Gallery */}
+                {/* Image URL Input for Team, Faculty, and Gallery */}
                 {(activeTab === 'team' || activeTab === 'gallery' || activeTab === 'faculty') && (
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
-                      Upload File (PNG/JPG/MP4/WAV) {(!editingId && (activeTab === 'team' || activeTab === 'faculty')) ? "(Optional)" : (editingId && (formData.image || formData.media) ? "(Optional to replace)" : "")}
+                      Image URL {(!editingId && (activeTab === 'team' || activeTab === 'faculty')) ? "(Optional)" : ""}
                     </span>
                     <input
-                      type="file"
-                      accept="image/png, image/jpeg, image/jpg, video/mp4, audio/wav"
-                      onChange={handleFileChange}
-                      ref={fileInputRef}
+                      type="url"
+                      name="imageUrl"
+                      placeholder="HTTPS://IMGUR.COM/EXAMPLE.JPG"
+                      value={formData.imageUrl || ''}
+                      onChange={handleInputChange}
                       required={!editingId && activeTab === 'gallery'}
-                      className="w-full bg-transparent border-b border-brand/20 px-0 py-2 text-xs font-bold uppercase tracking-widest text-brand focus:border-accent transition-colors rounded-none file:mr-4 file:py-2 file:px-4 file:border file:border-brand/20 file:text-xs file:font-bold file:uppercase file:bg-transparent file:text-brand hover:file:bg-brand/5 file:cursor-pointer cursor-pointer"
+                      className="w-full bg-transparent border-b border-brand/20 px-0 py-2 text-xs font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 focus:border-accent transition-colors rounded-none outline-none"
                     />
                   </div>
                 )}
