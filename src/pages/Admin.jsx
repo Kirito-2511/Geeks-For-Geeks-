@@ -197,7 +197,20 @@ export default function Admin() {
   }
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let value = e.target.value;
+    const urlFields = ['linkedin', 'github', 'instagram', 'link'];
+    if (urlFields.includes(e.target.name) && value) {
+      // Only allow http/https URLs
+      try {
+        const parsed = new URL(value);
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          return; // reject invalid protocol
+        }
+      } catch {
+        // Allow partial URLs during typing, validate on submit
+      }
+    }
+    setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleFileChange = (e) => {
