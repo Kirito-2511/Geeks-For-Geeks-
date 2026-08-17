@@ -91,13 +91,8 @@ function SortableRow({ item, keys, activeTab, onDelete, onEdit }) {
 }
 
 export default function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      return sessionStorage.getItem('gfg_admin_auth') === 'true';
-    } catch (e) {
-      return false;
-    }
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('content');
   const [editingId, setEditingId] = useState(null);
@@ -111,24 +106,73 @@ export default function Admin() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleLogin = (e) => {
+  // Verify stored token on mount
+  React.useEffect(() => {
+    const token = sessionStorage.getItem('gfg_admin_token');
+    if (!token) {
+      setIsCheckingAuth(false);
+      return;
+    }
+    fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    })
+      .then(res => res.json())
+      .then(({ valid }) => {
+        if (valid) {
+          setIsAuthenticated(true);
+        } else {
+          sessionStorage.removeItem('gfg_admin_token');
+        }
+      })
+      .catch(() => {
+        sessionStorage.removeItem('gfg_admin_token');
+      })
+      .finally(() => setIsCheckingAuth(false));
+  }, []);
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === 'admin123') {
-      try {
-        sessionStorage.setItem('gfg_admin_auth', 'true');
-      } catch (err) {}
-      setIsAuthenticated(true);
-    } else {
-      alert('Incorrect password');
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        const { token } = await res.json();
+        sessionStorage.setItem('gfg_admin_token', token);
+        setIsAuthenticated(true);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Incorrect password');
+      }
+    } catch (err) {
+      alert('Login failed — is the dev server running?');
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = sessionStorage.getItem('gfg_admin_token');
     try {
-      sessionStorage.removeItem('gfg_admin_auth');
-    } catch (err) {}
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+    } catch (e) { /* best-effort */ }
+    sessionStorage.removeItem('gfg_admin_token');
     setIsAuthenticated(false);
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-[calc(100vh-72px)] flex items-center justify-center p-6 bg-canvas">
+        <p className="text-sm font-bold uppercase tracking-widest text-brand/40 animate-pulse">Verifying…</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
