@@ -209,9 +209,24 @@ const dbPlugin = () => ({
   }
 })
 
+const securityHeadersPlugin = () => ({
+  name: 'security-headers-plugin',
+  configureServer(server) {
+    server.middlewares.use((req, res, next) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff')
+      res.setHeader('X-Frame-Options', 'DENY')
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+      res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+      // HSTS — enable only when serving over HTTPS:
+      // res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+      next()
+    })
+  }
+})
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), authPlugin(), dbPlugin()],
+  plugins: [react(), securityHeadersPlugin(), authPlugin(), dbPlugin()],
   server: {
     host: true, // Allow external devices (phones on local network) to connect
     watch: {
