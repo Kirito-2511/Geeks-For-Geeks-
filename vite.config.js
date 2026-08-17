@@ -141,6 +141,13 @@ const dbPlugin = () => ({
   name: 'db-server-plugin',
   configureServer(server) {
     const dbPath = path.resolve(__dirname, 'src/data/db.json')
+    const templatePath = path.resolve(__dirname, 'src/data/db.template.json')
+
+    // If the live database doesn't exist (e.g., fresh clone), generate it from the template
+    if (!fs.existsSync(dbPath)) {
+      fs.copyFileSync(templatePath, dbPath)
+      console.log('🔒 Generated secure local db.json from template')
+    }
 
     server.middlewares.use((req, res, next) => {
       if (req.url === '/api/data') {
