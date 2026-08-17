@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useRef } from 'react';
-import initialDbData from '../data/db.json';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -8,19 +7,12 @@ export const DataContext = createContext();
 const LOCAL_STORAGE_KEY = 'gfg_club_data';
 
 export const DataProvider = ({ children }) => {
-  const [data, setData] = useState(initialDbData);
+  const [data, setData] = useState({ content: {}, team: [], faculty: [], gallery: [] });
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'clubData', 'master'), (docSnap) => {
       if (docSnap.exists()) {
-        const firestoreData = docSnap.data();
-        setData({
-          ...initialDbData,
-          ...firestoreData,
-          content: { ...(initialDbData.content || {}), ...(firestoreData.content || {}) }
-        });
-      } else {
-        setDoc(doc(db, 'clubData', 'master'), initialDbData).catch(console.error);
+        setData(docSnap.data());
       }
     }, (error) => {
       console.error("Firestore connection error:", error);
