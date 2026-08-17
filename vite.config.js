@@ -113,8 +113,28 @@ const dbPlugin = () => ({
         }
 
         if (req.method === 'POST') {
+          // Auth check — require valid admin token
+          const authToken = req.headers['x-admin-token']
+          if (!authToken || !activeTokens.has(authToken)) {
+            res.statusCode = 401
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Unauthorized' }))
+            return
+          }
+
           let body = ''
+          let bodySize = 0
+          const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10 MB limit
+
           req.on('data', chunk => {
+            bodySize += chunk.length
+            if (bodySize > MAX_BODY_SIZE) {
+              res.statusCode = 413
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'Payload too large' }))
+              req.destroy()
+              return
+            }
             body += chunk
           })
           req.on('end', () => {

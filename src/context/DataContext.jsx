@@ -39,7 +39,10 @@ export const DataProvider = ({ children }) => {
     try {
       await fetch('/api/data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': sessionStorage.getItem('gfg_admin_token') || '',
+        },
         body: JSON.stringify(newData),
       });
     } catch (e) {
