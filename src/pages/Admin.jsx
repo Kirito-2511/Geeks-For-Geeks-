@@ -1,9 +1,7 @@
 import React, { useState, useContext, useRef } from 'react';
 import { DataContext } from '../context/DataContext';
 import { sanitizeUrl } from '../utils/sanitize';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { storage, auth, db } from '../firebase';
+import { supabase } from '../supabase';
 import seedData from '../data/seed.json';
 import {
   DndContext,
@@ -102,6 +100,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('content');
   const [editingId, setEditingId] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data, updateContent, addItem, updateItem, deleteItem, reorderItems } = useContext(DataContext);
   const [formData, setFormData] = useState({});
@@ -113,21 +112,22 @@ export default function Admin() {
   );
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
       }
       setIsCheckingAuth(false);
     });
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
     } catch (error) {
       console.error("Auth Error:", error.message);
       alert("Invalid admin credentials.");
@@ -136,7 +136,7 @@ export default function Admin() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
     } catch (error) {
       console.error("Logout Error:", error);
     }
@@ -183,11 +183,12 @@ export default function Admin() {
     return (
       <div className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center p-6 bg-canvas text-center">
         <h2 className="text-3xl font-black uppercase text-brand mb-4">Database is Empty</h2>
-        <p className="text-brand/60 mb-8 max-w-md">Your Firebase database has not been initialized yet. Click the button below to seed the database with the default GeeksforGeeks template data.</p>
+        <p className="text-brand/60 mb-8 max-w-md">Your Supabase database has not been initialized yet. Click the button below to seed the database with the default GeeksforGeeks template data.</p>
         <button
           onClick={async () => {
             try {
-              await setDoc(doc(db, 'clubData', 'master'), seedData);
+              const { error } = await supabase.from('club_data').upsert({ id: 'master', data: seedData });
+              if (error) throw error;
               alert('Database initialized successfully!');
             } catch (err) {
               console.error(err);
@@ -206,23 +207,65 @@ export default function Admin() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024} MB.`);
+        e.target.value = '';
+        return;
+      }
+      setFormData({ ...formData, rawFile: file });
+    }
+  };
+
   const handleAddOrUpdateItem = async (e) => {
     e.preventDefault();
     const itemData = { ...formData };
 
     // Sanitize URL fields before saving
-    const urlFields = ['linkedin', 'github', 'instagram', 'link', 'image', 'media'];
+    const urlFields = ['linkedin', 'github', 'instagram', 'link'];
     urlFields.forEach((field) => {
       if (itemData[field]) {
         itemData[field] = sanitizeUrl(itemData[field]);
       }
     });
 
+    if (itemData.rawFile) {
+      setIsUploading(true);
+      try {
+        const fileExt = itemData.rawFile.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('gfg-bucket').upload(fileName, itemData.rawFile);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage.from('gfg-bucket').getPublicUrl(fileName);
+        itemData.fileUrl = publicUrl;
+      } catch (error) {
+        console.error("Storage upload failed:", error);
+        alert("Image upload failed. Please try again.");
+        setIsUploading(false);
+        return; // Halt submission
+      }
+      setIsUploading(false);
+    }
+
     if (activeTab === 'team' || activeTab === 'faculty') {
+      if (itemData.fileUrl) itemData.image = itemData.fileUrl;
       if (activeTab === 'team' && !itemData.level) itemData.level = 'MEMBERS'; // default
+      delete itemData.fileData;
+      delete itemData.fileUrl;
+      delete itemData.rawFile;
     } else if (activeTab === 'gallery') {
+      if (itemData.fileUrl) itemData.media = itemData.fileUrl;
       if (!itemData.eventTitle) itemData.eventTitle = 'Event 1: Highlights';
       itemData.span = 'col-span-1 row-span-1';
+      delete itemData.fileData;
+      delete itemData.fileUrl;
+      delete itemData.rawFile;
     }
 
     if (editingId) {
@@ -233,18 +276,22 @@ export default function Admin() {
     }
 
     setFormData({});
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const initiateEdit = (item) => {
     setEditingId(item.id);
     const formCopy = { ...item };
     delete formCopy.id;
+    // Don't carry over raw large base64 to input fields, but keep them for reference if needed
     setFormData(formCopy);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setFormData({});
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDragEnd = (event) => {
@@ -350,8 +397,8 @@ export default function Admin() {
                 // Hero
                 'heroOverline', 'heroHeadline1', 'heroHeadline2', 'heroSubcopy', 'marqueeText',
                 // About
-                'aboutLabel', 'aboutHeadline', 'aboutMissionHeadline', 'aboutMission', 'aboutMissionSubcopy', 
-                'aboutVisionHeadline', 'aboutVisionSubcopy', 'aboutFocusHeadline', 'aboutOpenHeadline', 
+                'aboutLabel', 'aboutHeadline', 'aboutMissionHeadline', 'aboutMission',
+                'aboutFocusHeadline', 'aboutOpenHeadline', 
                 'aboutOpenSubHeadline1', 'aboutOpenSubHeadline2', 'aboutOpenFooter',
                 // Events
                 'eventsLabel', 'eventsHeadline',
@@ -367,9 +414,11 @@ export default function Admin() {
                 'socialDiscord', 'socialInstagram', 'socialLinkedin', 'socialGithub', 'footerCopyright'
               ];
 
+              const FIELDS_TO_HIDE = ['aboutMissionSubcopy', 'aboutVisionHeadline', 'aboutVisionSubcopy'];
+
               const orderedKeys = [
                 ...CONTENT_ORDER,
-                ...Object.keys(data.content).filter(k => !CONTENT_ORDER.includes(k))
+                ...Object.keys(data.content).filter(k => !CONTENT_ORDER.includes(k) && !FIELDS_TO_HIDE.includes(k))
               ];
 
               return orderedKeys.map((key) => {
@@ -581,26 +630,26 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* Image URL Input for Team, Faculty, and Gallery */}
+                {/* File Upload for Team, Faculty, and Gallery */}
                 {(activeTab === 'team' || activeTab === 'gallery' || activeTab === 'faculty') && (
                   <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
-                      Image URL {(!editingId && (activeTab === 'team' || activeTab === 'faculty')) ? "(Optional)" : ""}
+                      Upload File (PNG/JPG/MP4/WAV) {(!editingId && (activeTab === 'team' || activeTab === 'faculty')) ? "(Optional)" : (editingId && (formData.image || formData.media) ? "(Optional to replace)" : "")}
                     </span>
                     <input
-                      type="url"
-                      placeholder="HTTPS://IMGUR.COM/EXAMPLE.JPG"
-                      value={formData[activeTab === 'gallery' ? 'media' : 'image'] || ''}
-                      onChange={(e) => setFormData({ ...formData, [activeTab === 'gallery' ? 'media' : 'image']: e.target.value })}
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, video/mp4, audio/wav"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
                       required={!editingId && activeTab === 'gallery'}
-                      className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
+                      className="w-full bg-transparent border-b border-brand/20 px-0 py-2 text-xs font-bold uppercase tracking-widest text-brand focus:border-accent transition-colors rounded-none file:mr-4 file:py-2 file:px-4 file:border file:border-brand/20 file:text-xs file:font-bold file:uppercase file:bg-transparent file:text-brand hover:file:bg-brand/5 file:cursor-pointer cursor-pointer"
                     />
                   </div>
                 )}
 
                 <div className="sm:col-span-2 flex justify-end mt-4">
-                  <button type="submit" className={`px-8 py-4 text-canvas text-sm font-black uppercase tracking-widest transition-colors ${editingId ? 'bg-accent hover:bg-brand' : 'bg-brand hover:bg-accent'}`}>
-                    {editingId ? 'UPDATE ITEM' : 'ADD ITEM'}
+                  <button type="submit" disabled={isUploading} className={`px-8 py-4 text-canvas text-sm font-black uppercase tracking-widest transition-colors ${editingId ? 'bg-accent hover:bg-brand' : 'bg-brand hover:bg-accent'} ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    {isUploading ? 'UPLOADING...' : (editingId ? 'UPDATE ITEM' : 'ADD ITEM')}
                   </button>
                 </div>
               </form>

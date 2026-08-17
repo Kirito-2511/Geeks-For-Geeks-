@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 
 export const DataContext = createContext();
 
@@ -10,21 +9,48 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState({ content: {}, team: [], faculty: [], gallery: [] });
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'clubData', 'master'), (docSnap) => {
-      if (docSnap.exists()) {
-        setData(docSnap.data());
+    const fetchInitialData = async () => {
+      const { data: row, error } = await supabase
+        .from('club_data')
+        .select('data')
+        .eq('id', 'master')
+        .single();
+      
+      if (row && row.data) {
+        setData(row.data);
+      } else if (error && error.code !== 'PGRST116') {
+        console.error("Supabase fetch error:", error);
       }
-    }, (error) => {
-      console.error("Firestore connection error:", error);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchInitialData();
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'club_data', filter: 'id=eq.master' },
+        (payload) => {
+          if (payload.new && payload.new.data) {
+            setData(payload.new.data);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  const persistData = (newData) => {
-    setDoc(doc(db, 'clubData', 'master'), newData).catch((error) => {
+  const persistData = async (newData) => {
+    const { error } = await supabase
+      .from('club_data')
+      .upsert({ id: 'master', data: newData });
+    
+    if (error) {
       console.error("Error updating document: ", error);
-    });
+    }
   };
 
   // --- CRUD Operations ---
