@@ -88,6 +88,19 @@ const authPlugin = () => ({
   }
 })
 
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+]
+
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+  }
+  res.setHeader('Vary', 'Origin')
+}
+
 const dbPlugin = () => ({
   name: 'db-server-plugin',
   configureServer(server) {
@@ -100,7 +113,7 @@ const dbPlugin = () => ({
             if (fs.existsSync(dbPath)) {
               const data = fs.readFileSync(dbPath, 'utf-8')
               res.setHeader('Content-Type', 'application/json')
-              res.setHeader('Access-Control-Allow-Origin', '*')
+              setCorsHeaders(req, res)
               res.end(data)
               return
             }
@@ -142,7 +155,7 @@ const dbPlugin = () => ({
               const parsed = JSON.parse(body)
               fs.writeFileSync(dbPath, JSON.stringify(parsed, null, 2), 'utf-8')
               res.setHeader('Content-Type', 'application/json')
-              res.setHeader('Access-Control-Allow-Origin', '*')
+              setCorsHeaders(req, res)
               res.end(JSON.stringify({ success: true }))
               return
             } catch (e) {
