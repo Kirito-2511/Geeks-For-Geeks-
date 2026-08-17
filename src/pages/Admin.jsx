@@ -2,21 +2,23 @@ import React, { useState, useContext, useRef } from 'react';
 import { DataContext } from '../context/DataContext';
 import { sanitizeUrl } from '../utils/sanitize';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage, auth } from '../firebase';
-import { 
-  DndContext, 
-  closestCenter, 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
-  useSensors 
+import { storage, auth, db } from '../firebase';
+import seedData from '../data/seed.json';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors
 } from '@dnd-kit/core';
-import { 
-  arrayMove, 
-  SortableContext, 
-  sortableKeyboardCoordinates, 
-  verticalListSortingStrategy 
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -39,16 +41,16 @@ function SortableRow({ item, keys, activeTab, onDelete, onEdit }) {
   };
 
   return (
-    <tr 
-      ref={setNodeRef} 
-      style={style} 
+    <tr
+      ref={setNodeRef}
+      style={style}
       className={`border-b border-brand/10 hover:bg-brand/[0.02] ${isDragging ? 'bg-brand/5 shadow-md' : ''} bg-canvas`}
     >
       {/* Drag Handle */}
       <td className="p-4 w-10 text-center cursor-grab active:cursor-grabbing text-brand/30 hover:text-brand" {...attributes} {...listeners}>
         ⠿
       </td>
-      
+
       {/* File Thumbnail */}
       {(activeTab === 'team' || activeTab === 'gallery' || activeTab === 'faculty') && (
         <td className="p-4 w-16">
@@ -67,23 +69,23 @@ function SortableRow({ item, keys, activeTab, onDelete, onEdit }) {
           )}
         </td>
       )}
-      
+
       {/* Data Cells */}
       {keys.map(key => (
         <td key={key} className="p-4 text-sm font-medium text-brand truncate max-w-[150px]">
           {item[key]}
         </td>
       ))}
-      
+
       {/* Actions */}
       <td className="p-4 text-right">
-        <button 
+        <button
           onClick={() => onEdit(item)}
           className="text-xs font-bold uppercase tracking-widest text-accent hover:text-brand transition-colors mr-4"
         >
           Edit
         </button>
-        <button 
+        <button
           onClick={() => onDelete(activeTab, item.id)}
           className="text-xs font-bold uppercase tracking-widest text-red-600 hover:text-red-400 transition-colors"
         >
@@ -178,6 +180,29 @@ export default function Admin() {
     );
   }
 
+  if (!data?.content || Object.keys(data.content).length === 0) {
+    return (
+      <div className="min-h-[calc(100vh-72px)] flex flex-col items-center justify-center p-6 bg-canvas text-center">
+        <h2 className="text-3xl font-black uppercase text-brand mb-4">Database is Empty</h2>
+        <p className="text-brand/60 mb-8 max-w-md">Your Firebase database has not been initialized yet. Click the button below to seed the database with the default GeeksforGeeks template data.</p>
+        <button
+          onClick={async () => {
+            try {
+              await setDoc(doc(db, 'clubData', 'master'), seedData);
+              alert('Database initialized successfully!');
+            } catch (err) {
+              console.error(err);
+              alert('Failed to initialize. Check console.');
+            }
+          }}
+          className="px-8 py-4 bg-brand text-canvas font-bold uppercase tracking-widest hover:bg-accent transition-colors border border-brand/20"
+        >
+          Initialize Database
+        </button>
+      </div>
+    );
+  }
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -199,7 +224,7 @@ export default function Admin() {
   const handleAddOrUpdateItem = async (e) => {
     e.preventDefault();
     const itemData = { ...formData };
-    
+
     // Sanitize URL fields before saving
     const urlFields = ['linkedin', 'github', 'instagram', 'link'];
     urlFields.forEach((field) => {
@@ -219,7 +244,7 @@ export default function Admin() {
         return; // Halt submission
       }
     }
-    
+
     if (activeTab === 'team' || activeTab === 'faculty') {
       if (itemData.fileUrl) itemData.image = itemData.fileUrl;
       if (activeTab === 'team' && !itemData.level) itemData.level = 'MEMBERS'; // default
@@ -241,7 +266,7 @@ export default function Admin() {
     } else {
       addItem(activeTab, itemData);
     }
-    
+
     setFormData({});
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -274,7 +299,7 @@ export default function Admin() {
 
   const renderTable = (items) => {
     if (!items || items.length === 0) return <p className="text-brand/50 uppercase tracking-widest text-sm py-4">No items found.</p>;
-    
+
     // For Team and Events, only show essential keys in table so it doesn't overflow
     const ignoreKeys = ['id', 'image', 'media', 'bg', 'span', 'description', 'linkedin', 'github', 'instagram', 'email', 'link'];
     const keys = Object.keys(items[0]).filter(k => !ignoreKeys.includes(k));
@@ -294,13 +319,13 @@ export default function Admin() {
             <tbody>
               <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
                 {items.map(item => (
-                  <SortableRow 
-                    key={item.id} 
-                    item={item} 
-                    keys={keys} 
-                    activeTab={activeTab} 
-                    onDelete={deleteItem} 
-                    onEdit={initiateEdit} 
+                  <SortableRow
+                    key={item.id}
+                    item={item}
+                    keys={keys}
+                    activeTab={activeTab}
+                    onDelete={deleteItem}
+                    onEdit={initiateEdit}
                   />
                 ))}
               </SortableContext>
@@ -358,26 +383,58 @@ export default function Admin() {
 
         {activeTab === 'content' ? (
           <div className="space-y-12">
-            {Object.entries(data.content).map(([key, value]) => (
-              <div key={key} className="border-b border-brand/20 pb-4">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-brand/50 mb-2">{key}</label>
-                {value.length > 50 || value.includes('\n') ? (
-                  <textarea
-                    value={value}
-                    onChange={(e) => updateContent(key, e.target.value)}
-                    rows={4}
-                    className="w-full bg-transparent border border-brand/20 p-4 text-sm font-bold uppercase tracking-widest text-brand outline-none focus:border-accent transition-colors rounded-none resize-none"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => updateContent(key, e.target.value)}
-                    className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand outline-none focus:border-accent transition-colors rounded-none"
-                  />
-                )}
-              </div>
-            ))}
+            {/* Sort keys so they appear in a logical, stable order */}
+            {(() => {
+              const CONTENT_ORDER = [
+                // Hero
+                'heroOverline', 'heroHeadline1', 'heroHeadline2', 'heroSubcopy', 'marqueeText',
+                // About
+                'aboutLabel', 'aboutHeadline', 'aboutMissionHeadline', 'aboutMission', 'aboutMissionSubcopy', 
+                'aboutVisionHeadline', 'aboutVisionSubcopy', 'aboutFocusHeadline', 'aboutOpenHeadline', 
+                'aboutOpenSubHeadline1', 'aboutOpenSubHeadline2', 'aboutOpenFooter',
+                // Events
+                'eventsLabel', 'eventsHeadline',
+                // Gallery
+                'galleryLabel', 'galleryHeadline',
+                // Faculty
+                'facultyLabel', 'facultyHeadline',
+                // Team
+                'teamLabel', 'teamHeadline',
+                // Contact
+                'contactLabel', 'contactHeadline', 'contactSubcopy', 'email',
+                // Socials & Footer
+                'socialDiscord', 'socialInstagram', 'socialLinkedin', 'socialGithub', 'footerCopyright'
+              ];
+
+              const orderedKeys = [
+                ...CONTENT_ORDER,
+                ...Object.keys(data.content).filter(k => !CONTENT_ORDER.includes(k))
+              ];
+
+              return orderedKeys.map((key) => {
+                const value = data.content[key] || ''; // Fallback to empty string if undefined
+                return (
+                  <div key={key} className="border-b border-brand/20 pb-4">
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-brand/50 mb-2">{key}</label>
+                    {value.length > 50 || value.includes('\n') ? (
+                      <textarea
+                        value={value}
+                        onChange={(e) => updateContent(key, e.target.value)}
+                        rows={4}
+                        className="w-full bg-transparent border border-brand/20 p-4 text-sm font-bold uppercase tracking-widest text-brand outline-none focus:border-accent transition-colors rounded-none resize-none"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => updateContent(key, e.target.value)}
+                        className="w-full bg-transparent border-b border-brand/20 px-0 py-3 text-sm font-bold uppercase tracking-widest text-brand outline-none focus:border-accent transition-colors rounded-none"
+                      />
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         ) : (
           <>
@@ -393,7 +450,7 @@ export default function Admin() {
                   </button>
                 )}
               </div>
-              
+
               <form onSubmit={handleAddOrUpdateItem} className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
                 {formFields[activeTab].map(field => {
                   if (field === 'description') {
@@ -482,7 +539,7 @@ export default function Admin() {
                       </div>
                     );
                   }
-                  
+
                   if (field === 'eventTitle' && activeTab === 'gallery') {
                     const eventSuggestions = Array.from(
                       new Set([
@@ -499,7 +556,7 @@ export default function Admin() {
                         <input
                           type="text"
                           name="eventTitle"
-                          placeholder="E.G. EVENT 1: NIRVANA 2026"
+                          placeholder="E.G. EVENT 1"
                           value={formData.eventTitle || ''}
                           onChange={handleInputChange}
                           list="gallery-event-headings"
@@ -544,7 +601,7 @@ export default function Admin() {
                     </div>
                   );
                 })}
-                
+
                 {/* Team Level Dropdown */}
                 {activeTab === 'team' && (
                   <div className="flex flex-col gap-1">
@@ -569,8 +626,8 @@ export default function Admin() {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-brand/50">
                       Upload File (PNG/JPG/MP4/WAV) {(!editingId && (activeTab === 'team' || activeTab === 'faculty')) ? "(Optional)" : (editingId && (formData.image || formData.media) ? "(Optional to replace)" : "")}
                     </span>
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/png, image/jpeg, image/jpg, video/mp4, audio/wav"
                       onChange={handleFileChange}
                       ref={fileInputRef}
@@ -590,7 +647,7 @@ export default function Admin() {
 
             {/* Data Table */}
             <div className="border border-brand/20">
-               {renderTable(data[activeTab])}
+              {renderTable(data[activeTab])}
             </div>
           </>
         )}

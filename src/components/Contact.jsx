@@ -12,7 +12,7 @@ export default function Contact() {
     e.preventDefault();
     const subject = encodeURIComponent(`Message from ${formData.name}`);
     const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`);
-    const targetEmail = import.meta.env.VITE_CONTACT_EMAIL || 'contact@example.com';
+    const targetEmail = content.email || 'contact@example.com';
     window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
   };
 
@@ -81,17 +81,26 @@ export default function Contact() {
           </p>
           
           <div className="flex gap-6">
-            {['Instagram', 'LinkedIn', 'Discord', 'GitHub'].map((social) => (
-              <a
-                key={social}
-                href="#"
-                rel="noopener noreferrer"
-                target="_blank"
-                className="text-xs font-bold uppercase tracking-widest text-brand/40 hover:text-brand transition-colors"
-              >
-                {social}
+            {content.socialInstagram && (
+              <a href={content.socialInstagram} rel="noopener noreferrer" target="_blank" className="text-xs font-bold uppercase tracking-widest text-brand/40 hover:text-brand transition-colors">
+                Instagram
               </a>
-            ))}
+            )}
+            {content.socialLinkedin && (
+              <a href={content.socialLinkedin} rel="noopener noreferrer" target="_blank" className="text-xs font-bold uppercase tracking-widest text-brand/40 hover:text-brand transition-colors">
+                LinkedIn
+              </a>
+            )}
+            {content.socialDiscord && (
+              <a href={content.socialDiscord} rel="noopener noreferrer" target="_blank" className="text-xs font-bold uppercase tracking-widest text-brand/40 hover:text-brand transition-colors">
+                Discord
+              </a>
+            )}
+            {content.socialGithub && (
+              <a href={content.socialGithub} rel="noopener noreferrer" target="_blank" className="text-xs font-bold uppercase tracking-widest text-brand/40 hover:text-brand transition-colors">
+                GitHub
+              </a>
+            )}
           </div>
         </div>
       </div>
