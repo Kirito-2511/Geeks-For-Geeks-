@@ -12,6 +12,7 @@ import {
   Filter
 } from 'lucide-react';
 import { DataContext } from '../context/DataContext';
+import { sanitizeUrl } from '../utils/sanitize';
 
 // Utility to normalize any date string to YYYY-MM-DD
 function normalizeDate(dateStr) {
@@ -409,10 +410,10 @@ export default function Events() {
                         )}
 
                         {/* Link / Action Button if provided */}
-                        {event.link && event.link !== '#' && (
+                        {sanitizeUrl(event.link) && event.link !== '#' && (
                           <div className="mt-5 pt-4 border-t border-brand/10 flex items-center justify-between">
                             <a
-                              href={event.link}
+                              href={sanitizeUrl(event.link)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors"

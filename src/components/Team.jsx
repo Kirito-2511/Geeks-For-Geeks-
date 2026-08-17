@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { DataContext } from '../context/DataContext';
+import { sanitizeUrl } from '../utils/sanitize';
 
 export default function Team() {
   const { data } = useContext(DataContext);
@@ -445,23 +446,23 @@ export default function Team() {
 
               {/* Social / Contact Links */}
               <div className="flex flex-wrap gap-6 justify-center sm:justify-start mt-auto">
-                {selectedMember.linkedin && (
-                  <a href={selectedMember.linkedin} target="_blank" rel="noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
+                {sanitizeUrl(selectedMember.linkedin) && (
+                  <a href={sanitizeUrl(selectedMember.linkedin)} target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
                     [LINKEDIN]
                   </a>
                 )}
-                {selectedMember.github && (
-                  <a href={selectedMember.github} target="_blank" rel="noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
+                {sanitizeUrl(selectedMember.github) && (
+                  <a href={sanitizeUrl(selectedMember.github)} target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
                     [GITHUB]
                   </a>
                 )}
-                {selectedMember.instagram && (
-                  <a href={selectedMember.instagram} target="_blank" rel="noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
+                {sanitizeUrl(selectedMember.instagram) && (
+                  <a href={sanitizeUrl(selectedMember.instagram)} target="_blank" rel="noopener noreferrer" className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
                     [INSTAGRAM]
                   </a>
                 )}
                 {selectedMember.email && (
-                  <a href={`mailto:${selectedMember.email}`} className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
+                  <a href={sanitizeUrl(`mailto:${selectedMember.email}`)} className="text-xs font-bold uppercase tracking-widest text-brand hover:text-accent transition-colors">
                     [EMAIL]
                   </a>
                 )}
