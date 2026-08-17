@@ -1,5 +1,6 @@
 import React, { useState, useContext, useRef } from 'react';
 import { DataContext } from '../context/DataContext';
+import { sanitizeUrl } from '../utils/sanitize';
 import { 
   DndContext, 
   closestCenter, 
@@ -197,20 +198,7 @@ export default function Admin() {
   }
 
   const handleInputChange = (e) => {
-    let value = e.target.value;
-    const urlFields = ['linkedin', 'github', 'instagram', 'link'];
-    if (urlFields.includes(e.target.name) && value) {
-      // Only allow http/https URLs
-      try {
-        const parsed = new URL(value);
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          return; // reject invalid protocol
-        }
-      } catch {
-        // Allow partial URLs during typing, validate on submit
-      }
-    }
-    setFormData({ ...formData, [e.target.name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (e) => {
@@ -227,6 +215,14 @@ export default function Admin() {
   const handleAddOrUpdateItem = (e) => {
     e.preventDefault();
     const itemData = { ...formData };
+    
+    // Sanitize URL fields before saving
+    const urlFields = ['linkedin', 'github', 'instagram', 'link'];
+    urlFields.forEach((field) => {
+      if (itemData[field]) {
+        itemData[field] = sanitizeUrl(itemData[field]);
+      }
+    });
     
     if (activeTab === 'team' || activeTab === 'faculty') {
       if (formData.fileData) itemData.image = formData.fileData;
