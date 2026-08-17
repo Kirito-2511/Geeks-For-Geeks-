@@ -1,10 +1,19 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { DataContext } from '../context/DataContext';
 
 export default function Contact() {
   const { data } = useContext(DataContext);
   const { content } = data;
+
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const subject = encodeURIComponent(`Message from ${formData.name}`);
+    const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`);
+    window.location.href = `mailto:contact@example.com?subject=${subject}&body=${body}`;
+  };
 
   return (
     <footer id="contact" className="bg-canvas border-b border-brand/10">
@@ -26,24 +35,33 @@ export default function Contact() {
 
           {/* Right: Stark Form */}
           <div className="flex flex-col justify-end">
-            <form className="flex flex-col border-t border-brand/20">
+            <form onSubmit={handleSubmit} className="flex flex-col border-t border-brand/20">
               <input
                 type="text"
                 placeholder="NAME"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full bg-transparent border-b border-brand/20 px-0 py-6 text-xl font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
               />
               <input
                 type="email"
                 placeholder="EMAIL"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full bg-transparent border-b border-brand/20 px-0 py-6 text-xl font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none"
               />
               <textarea
                 placeholder="MESSAGE"
                 rows={3}
+                required
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 className="w-full bg-transparent border-b border-brand/20 px-0 py-6 text-xl font-bold uppercase tracking-widest text-brand placeholder:text-brand/30 outline-none focus:border-accent transition-colors rounded-none resize-none"
               />
               <button
-                type="button"
+                type="submit"
                 className="group flex items-center justify-between w-full py-8 text-2xl font-black uppercase tracking-tighter text-brand hover:text-accent transition-colors"
               >
                 Send Message
