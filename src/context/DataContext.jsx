@@ -118,7 +118,7 @@ export const DataProvider = ({ children }) => {
     setData((prev) => {
       const updated = {
         ...prev,
-        [category]: [...(prev[category] || []), { ...item, id: Date.now().toString() }],
+        [category]: [...(prev[category] || []), { ...item, id: crypto.randomUUID() }],
       };
       persistData(updated);
       return updated;
