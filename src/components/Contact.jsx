@@ -12,7 +12,8 @@ export default function Contact() {
     e.preventDefault();
     const subject = encodeURIComponent(`Message from ${formData.name}`);
     const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`);
-    window.location.href = `mailto:contact@example.com?subject=${subject}&body=${body}`;
+    const targetEmail = import.meta.env.VITE_CONTACT_EMAIL || 'contact@example.com';
+    window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
   };
 
   return (
