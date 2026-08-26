@@ -55,7 +55,7 @@ export default function App() {
           <Route path="/faculty" element={<Faculty />} />
           <Route path="/team" element={<Team />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/vydt7778" element={<Admin />} />
         </Routes>
       </main>
     </div>
