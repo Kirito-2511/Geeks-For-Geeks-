@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { DataContext } from '../context/DataContext';
-import { X, ChevronLeft, ChevronRight, Maximize2, LayoutGrid, Film, Sparkles } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, LayoutGrid, Film } from 'lucide-react';
 
 // Sub-component for an individual Event Carousel Row
 function EventCarouselRow({ group, onSelectPhoto }) {

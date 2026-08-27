@@ -31,7 +31,7 @@ export default function Faculty() {
           </div>
         ) : (
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 py-12 md:py-16 grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap justify-center items-center gap-4 sm:gap-8 md:gap-12 justify-items-center">
-            {faculty.map((member, i) => {
+            {faculty.map((member) => {
               return (
                 <div 
                   key={member.id} 

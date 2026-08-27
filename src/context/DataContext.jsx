@@ -1,9 +1,8 @@
-import React, { createContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 
 export const DataContext = createContext();
 
-const LOCAL_STORAGE_KEY = 'gfg_club_data';
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState({ content: {}, team: [], faculty: [], gallery: [] });

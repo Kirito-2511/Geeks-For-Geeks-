@@ -5,11 +5,7 @@ import {
   ChevronLeft, 
   ChevronRight, 
   ArrowUpRight, 
-  Calendar as CalendarIcon,
-  Sparkles,
-  Tag,
-  CheckCircle2,
-  Filter
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { DataContext } from '../context/DataContext';
 import { sanitizeUrl } from '../utils/sanitize';
